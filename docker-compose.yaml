@@ -2,6 +2,6 @@ version: "3.9"
 
 services:
   flask_api:
-    image: andinasz/small_project:version-1
+    image: andinasz/small_project:$GITHUB_REF_NAME-$GITHUB_RUN_ID
     ports:
       - 80:80

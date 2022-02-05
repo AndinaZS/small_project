@@ -8,18 +8,14 @@ jobs:
       - name: clone code
         uses: actions/checkout@v2
       - name: docker build
-        run: docker build -t andinasz/flask_app:$GITHUB_REF_NAME-$GITHUB_RUN_ID .
+        run: docker build -t andinasz/small_project:$GITHUB_REF_NAME-$GITHUB_RUN_ID .
       - name: docker login
         run: echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
       - name: docker push
-        run: docker push andinasz/flask_app:$GITHUB_REF_NAME-$GITHUB_RUN_ID
+        run: docker push andinasz/small_project:$GITHUB_REF_NAME-$GITHUB_RUN_ID
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push
-    env:
-      DB_USER: postgres
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_NAME: ${{ secrets.DB_NAME }}
     steps:
       - name: clone code
         uses: actions/checkout@v2
@@ -27,17 +23,15 @@ jobs:
         run: |
           mkdir deploy
           cat docker-compose.yaml | envsubst > deploy/docker-compose.yaml
-          cat create_tables.py | envsubst > deploy/create_tables.py
-          cat load_fixtures.py | envsubst > deploy/load_fixtures.py
-          cat fixtures.json| envsubst > deploy/fixtures.json
+          cat apache_logs.txt | envsubst > deploy/apache_logs.txt
       - name: scp
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: "deploy/docker-compose.yaml,deploy/create_tables.py,deploy/load_fixtures.py,deploy/fixtures.json"
-          target: "flask_app"
+          source: "deploy/docker-compose.yaml,deploy/apache_logs.txt"
+          target: "small_project"
           strip_components: 1
       - name: deploy
         uses: appleboy/ssh-action@master
@@ -46,7 +40,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cd flask_app
+            cd small_project
             echo ${{ secrets.SSH_PASSWORD }} | sudo -S docker-compose up -d
           
       
