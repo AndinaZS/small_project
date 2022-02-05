@@ -1,0 +1,7 @@
+version: "3.9"
+
+services:
+  flask_api:
+    image: andinasz/small_project:version-1
+    ports:
+      - 80:80
